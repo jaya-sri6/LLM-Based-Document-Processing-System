@@ -54,6 +54,7 @@ function App() {
   const [status, setStatus] = useState('Ready. Please upload a document.');
   const [error, setError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isReadyForQuery, setIsReadyForQuery] = useState(false);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -62,6 +63,7 @@ function App() {
         setStatus(`Ready to process '${selectedFile.name}'.`);
         setError('');
         setResponse(null);
+        setIsReadyForQuery(false);
     }
   };
 
@@ -77,6 +79,8 @@ function App() {
     setIsProcessing(true);
     setError('');
     setResponse(null);
+    setIsReadyForQuery(false);
+
 
     try {
       setStatus('1/2: Uploading and processing document...');
@@ -84,13 +88,15 @@ function App() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setStatus('2/2: Embedding document... This may take a moment.');
-      const embedRes = await axios.post('/api/embed/');
+      await axios.post('/api/embed/');
       setStatus(`Document '${file.name}' is processed and ready for queries.`);
+      setIsReadyForQuery(true);
 
     } catch (err) {
       const errorMessage = err.response?.data?.detail || err.message;
       setError(`An error occurred: ${errorMessage}`);
       setStatus('Processing failed.');
+      setIsReadyForQuery(false);
     } finally {
       setIsProcessing(false);
     }
@@ -163,7 +169,7 @@ function App() {
           />
           <button
             onClick={handleQuerySubmit}
-            disabled={isProcessing}
+            disabled={isProcessing || !isReadyForQuery}
             className="mt-3 w-full px-4 py-3 bg-green-600 text-white font-bold rounded-lg shadow-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-300"
           >
             {isProcessing && status.includes('Analyzing') ? 'Analyzing...' : 'Get Analysis'}

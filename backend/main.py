@@ -110,7 +110,7 @@ def embed_document():
     if not document_store["chunks"]:
         raise HTTPException(status_code=404, detail="No document has been uploaded. Please use the /upload endpoint first.")
 
-    if document_store["embeddings"].any():
+    if document_store.get("embeddings") is not None and document_store["embeddings"].any():
         return {"message": "Embeddings have already been created for the current document."}
 
     try:
